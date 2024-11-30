@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,34 +22,45 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^=dbj(o*av1)+(^pg#zzct5)4uw6xgwg3$urm-+yskprw6##18'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-^=dbj(o*av1)+(^pg#zzct5)4uw6xgwg3$urm-+yskprw6##18')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
-ALLOWED_HOSTS = []
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    # Aplicaciones integradas de Django
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Aplicaciones locales
     'users',
+
+    # Aplicaciones de terceros
+    'rest_framework',  # Django REST Framework
+    'corsheaders',     # Django CORS Headers (para manejar CORS)
+    'whitenoise.runserver_nostatic',  # Soporte para archivos estáticos en producción
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Manejo de CORS (debe ir antes de CommonMiddleware)
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Soporte para archivos estáticos en producción
 ]
 
 ROOT_URLCONF = 'GalaxyAuth.urls'
@@ -75,10 +88,7 @@ WSGI_APPLICATION = 'GalaxyAuth.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(default=f'sqlite:///{BASE_DIR / "db.sqlite3"}', conn_max_age=600),
 }
 
 
@@ -104,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-es'  # Idioma configurado a español
 
 TIME_ZONE = 'UTC'
 
@@ -116,7 +126,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
+# Configuración para producción
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Configuración de sesión
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expira la sesión al cerrar el navegador
+SESSION_COOKIE_AGE = 10  # Expira después de 1 hora de inactividad (3600 segundos)
+SESSION_COOKIE_SECURE = False  # Cambiar a True en producción si usas HTTPS
+SESSION_COOKIE_SAMESITE = 'Lax'  # Configuración de seguridad para las cookies
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Usa la base de datos para almacenar sesiones
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -125,9 +147,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/'  # Página a la que se redirige tras iniciar sesión
 LOGOUT_REDIRECT_URL = '/login/'  # Página a la que se redirige tras cerrar sesión
-LOGIN_URL = '/login/'
+LOGIN_URL = '/login/'  # Redirige al login si no está autenticado
 
-LOGOUT_REDIRECT_URL = '/login/' 
+
 
 # Configuración de etiquetas de mensajes
 from django.contrib.messages import constants as messages
@@ -135,3 +157,17 @@ from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',  # Asocia los errores con la clase "danger" de Bootstrap
 }
+
+
+# CORS Configuration
+# https://pypi.org/project/django-cors-headers/
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",  # Para pruebas locales
+    "http://127.0.0.1:8000",  # Dirección estándar en desarrollo
+    "https://mi-dominio.com",  # Dirección de tu aplicación en producción (si aplica)
+]
+
+# Configuración para permitir todo en desarrollo
+CORS_ALLOW_ALL_ORIGINS = True
+
+

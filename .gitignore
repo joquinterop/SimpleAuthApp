@@ -1,0 +1,41 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Entorno virtual
+venv/
+*.pyc
+__pycache__/
+
+# Archivos de configuración de Python
+*.env
+*.log
+
+# Base de datos local
+db.sqlite3
+
+# Archivos de migración
+*.pyc
+*.pyo
+*.pyd
+migrations/
+
+# Archivos estáticos recolectados
+/staticfiles/
+
+# Configuración de herramientas de desarrollo
+.vscode/
+.idea/
+
+# Archivos de despliegue específicos
+*.bak
+*.swp
+*.swo
+*.tmp
+
+# Carpetas de caché
+.cache/
+*.egg-info/
+
+# Configuración de despliegue
+Procfile
