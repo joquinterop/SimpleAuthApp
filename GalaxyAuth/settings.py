@@ -6,10 +6,15 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Secret Key
-SECRET_KEY = os.environ['MY_SECRET_KEY']
+SECRET_KEY = os.getenv('MY_SECRET_KEY', 'clave-secreta-local')
+
 DEBUG = False
-CSRF_TRUSTED_ORIGINS = ['https://'+os.environ['WEBSITE_HOSTNAME']]
-ALLOWED_HOSTS = [os.environ['WEBSITE_HOSTNAME']]
+# ALLOWED_HOSTS con valor por defecto
+ALLOWED_HOSTS = os.getenv('WEBSITE_HOSTNAME', 'localhost').split(',')
+
+# CSRF Trusted Origins con valor por defecto
+CSRF_TRUSTED_ORIGINS = ['https://' + os.getenv('WEBSITE_HOSTNAME', 'localhost')]
+
 
 # Application definition
 INSTALLED_APPS = [
